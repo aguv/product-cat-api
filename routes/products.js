@@ -45,7 +45,7 @@ router.post('/', async (req, res, next) => {
         //console.log(cats);
 
         await product.addCat(cats);
-        //product.getCat().then(cats => console.log(cats))
+        product.getCat().then(cats => console.log(cats))
 
         res.send(product);
     } catch (e) {
@@ -58,12 +58,22 @@ router.put('/:id', async (req, res, next) => {
         const id = parseInt(req.params.id);
         const product = await Product.findByPk(id);
 
+        let categories = Helpers.prepareCategories(req.body.categories);
+        categories = categories.map(category => Category.findOrCreate({ where: { name: category } } ));
+
         product.name = req.body.name;
         product.price = req.body.price;
         product.description = req.body.description;
         product.state = req.body.state;
         product.stock = req.body.stock;
-        
+
+        let cats = await Promise.all(categories);
+        cats = cats.flat().filter(c => typeof c !== 'boolean');
+        //console.log(cats);
+
+        await product.setCat(cats);
+        //product.getCat().then(cats => console.log(cats))
+
         product.save();
 
         res.send(product)
