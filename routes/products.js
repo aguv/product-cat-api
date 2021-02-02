@@ -2,6 +2,7 @@ const router = require('express').Router();
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const Helpers = require('../helpers');
+const Promise = require("bluebird");
 
 router.get('/:id', async (req, res, next) => {
     try {
@@ -28,17 +29,24 @@ router.get('/', Helpers.isQuery, async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
     try {
-        const categories = Helpers.prepareCategories(req.body.categories);
+        let categories = Helpers.prepareCategories(req.body.categories);
+        categories = categories.map(category => Category.findOrCreate({ where: { name: category } } ));
+
         const product = await Product.create({
             name: req.body.name,
             price: req.body.price,
             description: req.body.description,
             state: req.body.state,
             stock: req.body.stock,
-            cats: categories
-        }, {
-            include: 'cats'
         });
+
+        let cats = await Promise.all(categories);
+        cats = cats.flat().filter(c => typeof c !== 'boolean');
+        //console.log(cats);
+
+        await product.addCat(cats);
+        //product.getCat().then(cats => console.log(cats))
+
         res.send(product);
     } catch (e) {
         next(e)
@@ -57,7 +65,6 @@ router.put('/:id', async (req, res, next) => {
         product.stock = req.body.stock;
         
         product.save();
-        //product.getCats().then(cats => console.log(cats));
 
         res.send(product)
     } catch (e) {

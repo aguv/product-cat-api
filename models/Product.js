@@ -35,15 +35,6 @@ Product.init({
     state: {
         type: S.BOOLEAN,
         defaultValue: true,
-        set(value) {
-            const name = this.getDataValue('name');
-            if(value === false) {
-                this.setDataValue('name', `${name} NO DISPONIBLE`);
-            } else {
-                this.setDataValue('name', `${name}`);
-            }
-            this.setDataValue('state', value);
-        }
     },
     virtualPrice: {
         type: S.VIRTUAL,
@@ -76,7 +67,7 @@ Product.prototype.profits = function() {
     return this.stock * this.price;
 }
 
-Product.belongsToMany(Category, { through: 'product_category'} );
-Category.belongsToMany(Product, { through: 'product_category'} );
+Product.belongsToMany(Category, { through: 'prodCat', as: 'cat', foreignKey: 'prodId', otherKey: 'catId' } );
+Category.belongsToMany(Product, { through: 'prodCat', as: 'prod', foreignKey: 'catId', otherKey: 'prodId'} );
 
 module.exports = Product;

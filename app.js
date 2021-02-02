@@ -26,7 +26,7 @@ const PORT = 3000;
 
 const dbSwitch = async () => {
     try {
-        await db.sync();
+        await db.sync({force: false});
         console.log('Sequelize on');
         app.listen(PORT, () => {
             console.log(`Server listening on port: ${PORT}`);
